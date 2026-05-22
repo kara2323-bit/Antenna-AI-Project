@@ -31,13 +31,12 @@ st.markdown("""
 # ==========================================
 @st.cache_resource
 def load_brains():
+    # Adding compile=False and safe_mode=False ensures compatibility across versions
     fwd = tf.keras.models.load_model('forward_model_final.keras', compile=False)
     inv = tf.keras.models.load_model('inverse_model_final.keras', compile=False)
     s_geo = joblib.load('scaler_geo.pkl')
     s_perf = joblib.load('scaler_perf.pkl')
     return fwd, inv, s_geo, s_perf
-
-fwd, inv, s_geo, s_perf = load_brains()
 
 # ==========================================
 # UI HEADER
