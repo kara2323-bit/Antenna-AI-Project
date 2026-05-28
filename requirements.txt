@@ -1,8 +1,9 @@
 streamlit
-tensorflow
-pandas
 numpy
+pandas
+tensorflow-cpu
 scikit-learn
 joblib
 matplotlib
 scipy
+groq
