@@ -89,6 +89,7 @@ def vna_measure(freqs, curve):
 
 @st.cache_resource
 def load_brains():
+    # Forward model priority: shrunk -> final -> h5
     if os.path.exists("forward_model_shrunk.keras"):
         fwd_path = "forward_model_shrunk.keras"
     elif os.path.exists("forward_model_final.keras"):
@@ -96,9 +97,20 @@ def load_brains():
     elif os.path.exists("forward_model_final.h5"):
         fwd_path = "forward_model_final.h5"
     else:
-        raise FileNotFoundError("No forward model file found.")
+        raise FileNotFoundError(
+            "No forward model file found. Expected one of: "
+            "forward_model_shrunk.keras, forward_model_final.keras, forward_model_final.h5"
+        )
 
+    # Inverse model is optional
     inv_path = "inverse_model_final.keras" if os.path.exists("inverse_model_final.keras") else None
+
+    # Required scalers
+    if not os.path.exists("scaler_geo.pkl"):
+        raise FileNotFoundError("Missing scaler_geo.pkl")
+    if not os.path.exists("scaler_perf.pkl"):
+        raise FileNotFoundError("Missing scaler_perf.pkl")
+
     fwd = tf.keras.models.load_model(fwd_path, compile=False)
     inv = tf.keras.models.load_model(inv_path, compile=False) if inv_path else None
     s_geo = joblib.load("scaler_geo.pkl")
