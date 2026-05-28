@@ -89,14 +89,21 @@ def vna_measure(freqs, curve):
 
 @st.cache_resource
 def load_brains():
-    fwd_path = "forward_model_final.keras" if os.path.exists("forward_model_final.keras") else "forward_model_final.h5"
+    if os.path.exists("forward_model_shrunk.keras"):
+        fwd_path = "forward_model_shrunk.keras"
+    elif os.path.exists("forward_model_final.keras"):
+        fwd_path = "forward_model_final.keras"
+    elif os.path.exists("forward_model_final.h5"):
+        fwd_path = "forward_model_final.h5"
+    else:
+        raise FileNotFoundError("No forward model file found.")
+
     inv_path = "inverse_model_final.keras" if os.path.exists("inverse_model_final.keras") else None
     fwd = tf.keras.models.load_model(fwd_path, compile=False)
     inv = tf.keras.models.load_model(inv_path, compile=False) if inv_path else None
     s_geo = joblib.load("scaler_geo.pkl")
     s_perf = joblib.load("scaler_perf.pkl")
     return fwd, inv, s_geo, s_perf
-
 
 @st.cache_data
 def load_data():
