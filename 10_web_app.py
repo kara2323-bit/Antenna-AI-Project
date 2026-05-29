@@ -12,7 +12,6 @@ from scipy.signal import savgol_filter
 from scipy.interpolate import make_interp_spline
 from groq import Groq
 from groq import AuthenticationError as GroqAuthError
-from groq import AuthenticationError as GroqAuthError
 
 
 FREQS_RAW = np.linspace(1.0, 7.0, 151)
@@ -815,6 +814,17 @@ header {{ visibility: hidden; }}
   box-shadow: 0 10px 28px rgba(255, 140, 0, 0.28) !important;
 }}
 .stButton > button:active {{ transform: translateY(0); }}
+.result-banner {{
+  background: rgba(46, 125, 50, 0.22);
+  border: 1px solid rgba(129, 199, 132, 0.45);
+  color: #c8e6c9;
+  padding: 12px 18px;
+  border-radius: 12px;
+  margin: 0 0 18px 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+}}
 .footer-text {{
   margin-top: 120px; padding: 56px 24px 80px; text-align: center;
   border-top: 1px solid rgba(255,255,255,0.08); color: #8b939e;
@@ -1197,8 +1207,11 @@ with mid_i:
 
 if "inv_res" in st.session_state:
     r = st.session_state.inv_res
+    st.markdown(
+        '<div class="result-banner">Inverse search completed. Review dimensions and predicted performance in this section.</div>',
+        unsafe_allow_html=True,
+    )
     st.markdown("<h3 class='status-heading'>Optimized Geometry</h3>", unsafe_allow_html=True)
-    st.success("Inverse search completed. Review dimensions and predicted performance below.")
     c1, c2, c3 = st.columns(3)
     c1.metric("Optimal Lp", f"{r['lp']:.3f} mm")
     c2.metric("Optimal Wp", f"{r['wp']:.3f} mm")
