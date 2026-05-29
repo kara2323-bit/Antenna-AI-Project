@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 from scipy.interpolate import make_interp_spline
 from groq import Groq
+from groq import AuthenticationError as GroqAuthError
+from groq import AuthenticationError as GroqAuthError
 
 
 FREQS_RAW = np.linspace(1.0, 7.0, 151)
@@ -1196,6 +1198,7 @@ with mid_i:
 if "inv_res" in st.session_state:
     r = st.session_state.inv_res
     st.markdown("<h3 class='status-heading'>Optimized Geometry</h3>", unsafe_allow_html=True)
+    st.success("Inverse search completed. Review dimensions and predicted performance below.")
     c1, c2, c3 = st.columns(3)
     c1.metric("Optimal Lp", f"{r['lp']:.3f} mm")
     c2.metric("Optimal Wp", f"{r['wp']:.3f} mm")
@@ -1205,7 +1208,6 @@ if "inv_res" in st.session_state:
     c5.metric("Pred Gain", f"{r['gain']:.2f} dBi")
     c6.metric("Pred BW", f"{r['bw']:.3f} GHz")
     st.caption(f'Status: {r["status"]}')
-    st.success("Inverse search completed. Review dimensions and predicted performance below.")
     _, _inv_ant_col, _ = st.columns([1.4, 1, 1.4])
     with _inv_ant_col:
         st.markdown('<div class="antenna-plot-wrap">', unsafe_allow_html=True)
@@ -1282,14 +1284,28 @@ with chat_col:
             st.session_state.messages.append({"role": "user", "content": prompt})
             with st.chat_message("user"):
                 st.markdown(prompt)
-            completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=st.session_state.messages,
-            )
-            response = completion.choices[0].message.content
-            with st.chat_message("assistant"):
-                st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            try:
+                completion = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=st.session_state.messages,
+                )
+                response = completion.choices[0].message.content
+            except GroqAuthError:
+                st.session_state.messages.pop()
+                st.error(
+                    "Invalid Groq API key. In Streamlit Cloud go to **Manage app → Settings → Secrets** "
+                    "and set `GROQ_API_KEY` to a valid key from [console.groq.com](https://console.groq.com). "
+                    "Use only the key (starts with `gsk_`), no extra quotes, then **Reboot app**."
+                )
+                response = None
+            except Exception as e:
+                st.session_state.messages.pop()
+                st.error(f"AETHER request failed: {e}")
+                response = None
+            if response:
+                with st.chat_message("assistant"):
+                    st.markdown(response)
+                st.session_state.messages.append({"role": "assistant", "content": response})
 
 st.markdown(
     """
