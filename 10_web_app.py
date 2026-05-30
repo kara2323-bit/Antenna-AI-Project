@@ -273,7 +273,7 @@ def forward_anchor(lp, wp, shape_id, db):
     return {
         "fr": fr_m if np.isfinite(fr_m) else fr,
         "s11": s11,
-        "bw": bw_m if bw_m > 0 else bw,
+        "bw": float(bw_m),
         "gain": gain,
         "eff": eff,
         "status": status,
@@ -295,17 +295,18 @@ def forward_best(lp, wp, shape_id, fwd, s_geo, s_perf, db):
         return anc
     a, m = 0.75, 0.25
     out = {
-        "fr": a * anc["fr"] + m * ml["fr"],
-        "s11": a * anc["s11"] + m * ml["s11"],
-        "bw": a * anc["bw"] + m * ml["bw"],
         "gain": a * anc["gain"] + m * ml["gain"],
         "eff": a * anc["eff"] + m * ml["eff"],
-        "status": "WORKING" if (a * anc["s11"] + m * ml["s11"]) <= -10 else "NOT WORKING",
         "f": anc["f"],
         "c": a * anc["c"] + m * ml["c"],
-        "v": a * anc["v"] + m * ml["v"],
         "engine": "Hybrid (CSV + ML)",
     }
+    fr_h, s11_h, bw_h, status_h, vswr_h = vna_measure(out["f"], out["c"])
+    out["fr"] = fr_h
+    out["s11"] = s11_h
+    out["bw"] = bw_h
+    out["status"] = status_h
+    out["v"] = vswr_h
     return out
 
 
@@ -1077,7 +1078,6 @@ with mid_f:
                     "wp": float(near["Wp"]),
                     "fr": float(near["fr (GHz)"]) if "fr (GHz)" in near.index else np.nan,
                     "s11": float(near["S11_min"]) if "S11_min" in near.index else np.nan,
-                    "bw": float(near["BW (GHz)"]) if "BW (GHz)" in near.index else np.nan,
                     "dist": float(near["dist"]),
                 }
 
