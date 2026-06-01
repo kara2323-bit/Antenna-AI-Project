@@ -1,6 +1,2 @@
 [client]
-showErrorDetails = false
-showSidebarNavigation = false
-
-[logger]
-level = "error"
+toolbarMode = "minimal"
